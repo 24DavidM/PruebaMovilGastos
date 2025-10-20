@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  SafeAreaView,
-} from 'react-native';
-import { Users } from 'lucide-react-native';
+import EliminarGastoModal from '@/components/EliminarGastoModal';
 import NuevoGastoModal from '@/components/NuevoGastoModal';
 import { useGastos } from '@/context/GastosContext';
+import { Trash2, Users } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+    ActivityIndicator,
+    FlatList,
+    SafeAreaView,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [gastoAEliminar, setGastoAEliminar] = useState<{id: string; descripcion: string; monto: number} | null>(null);
   const { gastos, agregarGasto, totalGastos, cargando } = useGastos();
 
   const handleGuardarGasto = async (nuevoGasto: {
@@ -118,15 +120,27 @@ export default function Home() {
                     ))}
                   </View>
 
-                  {/* Estado del recibo */}
-                  {item.fotoUri && (
-                    <View className="flex-row items-center">
-                      <View className="bg-green-500 w-2 h-2 rounded-full mr-1" />
-                      <Text className="text-green-600 text-xs font-medium">
-                        Recibo verificado
-                      </Text>
-                    </View>
-                  )}
+                  {/* Estado del recibo y botón eliminar */}
+                  <View className="flex-row items-center">
+                    {item.fotoUri && (
+                      <>
+                        <View className="bg-green-500 w-2 h-2 rounded-full mr-1" />
+                        <Text className="text-green-600 text-xs font-medium mr-3">
+                          Recibo verificado
+                        </Text>
+                      </>
+                    )}
+                    <TouchableOpacity
+                      onPress={() => setGastoAEliminar({
+                        id: item.id,
+                        descripcion: item.descripcion,
+                        monto: item.monto
+                      })}
+                      className="bg-red-50 p-2 rounded-full"
+                    >
+                      <Trash2 size={16} color="#dc2626" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             )}
@@ -154,6 +168,14 @@ export default function Home() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSave={handleGuardarGasto}
+      />
+
+      <EliminarGastoModal
+        gastoId={gastoAEliminar?.id ?? null}
+        descripcion={gastoAEliminar?.descripcion ?? ''}
+        monto={gastoAEliminar?.monto ?? 0}
+        isVisible={!!gastoAEliminar}
+        onClose={() => setGastoAEliminar(null)}
       />
     </SafeAreaView>
   );

@@ -15,6 +15,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { generarHTMLPDF } from '@/components/generarHTMLPDF';
 
+
 type Categoria = {
   nombre: string;
   monto: number;
@@ -193,6 +194,7 @@ export default function Reporte() {
             ))
           )}
         </View>
+        
 
         <View className="mb-6">
           <View className="flex-row items-center mb-4">

@@ -1,5 +1,5 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 // Tipos
 export type Gasto = {
@@ -89,11 +89,27 @@ export function GastosProvider({ children }: { children: ReactNode }) {
     await guardarGastos(nuevosGastos);
   };
 
-  // ELIMINAR gasto
-  const eliminarGasto = async (id: string) => {
-    const nuevosGastos = gastos.filter(g => g.id !== id);
-    setGastos(nuevosGastos);
-    await guardarGastos(nuevosGastos);
+  // ELIMINAR gasto con confirmación
+  const eliminarGasto = async (id: string): Promise<void> => {
+    try {
+      // Encontrar el gasto a eliminar para mostrar detalles
+      const gastoAEliminar = gastos.find(g => g.id === id);
+      if (!gastoAEliminar) {
+        console.log('No se encontró el gasto a eliminar');
+        return;
+      }
+
+      // Eliminar el gasto
+      const nuevosGastos = gastos.filter(g => g.id !== id);
+      setGastos(nuevosGastos);
+      await guardarGastos(nuevosGastos);
+
+      // Notificar éxito
+      console.log(`Gasto eliminado: ${gastoAEliminar.descripcion} - $${gastoAEliminar.monto}`);
+    } catch (error) {
+      console.error('Error al eliminar gasto:', error);
+      throw new Error('No se pudo eliminar el gasto');
+    }
   };
 
   // Calcular TOTAL de gastos
@@ -158,12 +174,15 @@ export function GastosProvider({ children }: { children: ReactNode }) {
     return deudas;
   };
 
-  // Calcular gastos por CATEGORÍA
+  // Calcular gastos por CATEGORÍA basado en la primera palabra de la descripción
   const gastosPorCategoria = () => {
     const categorias: { [key: string]: number } = {};
 
     gastos.forEach(gasto => {
-      const cat = gasto.categoria || 'Sin categoría';
+      // Obtener la primera palabra de la descripción
+      const primeraPalabra = gasto.descripcion.split(' ')[0] || 'Sin categoría';
+      // Convertir a mayúscula la primera letra para mejor presentación
+      const cat = primeraPalabra.charAt(0).toUpperCase() + primeraPalabra.slice(1);
       categorias[cat] = (categorias[cat] || 0) + gasto.monto;
     });
 
